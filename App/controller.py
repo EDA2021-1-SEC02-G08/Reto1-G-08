@@ -24,15 +24,17 @@ import config as cf
 import model
 import csv
 
-
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
-
-# Inicialización del Catálogo de libros
-
-# Funciones para la carga de datos
-
-# Funciones de ordenamiento
-
-# Funciones de consulta sobre el catálogo
+def loadVideos(filename):
+    videosfile=cf.data_dir+filename
+    return model.addVideos(videosfile)
+def loadCategories(filename):
+    categoriesfile=cf.data_dir+filename
+    return model.addCategories(categoriesfile)
+def buscarTop(pais, categoria, n,  categories, videos):
+    return model.buscarTop(pais, categoria, n,  categories, videos)
+def buscarTrend(pais, categories, videos):
+    return model.buscarTrend(pais, categories, videos)
+def buscarTrendMenor(categoria, categories, videos):
+    return model.buscarTrendMenor(categoria, categories, videos)
+def topTags(tag, pais, n, videos):
+    return model.topTags(tag, pais, n, videos)

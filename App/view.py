@@ -25,6 +25,9 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 assert cf
+from DISClib.ADT import queue as que
+from datetime import date
+
 
 
 """
@@ -41,6 +44,19 @@ def printMenu():
     print("3- Determinar el video que más días ha sido trending para un país")
     print("4- Determinar el video que más días ha sido trending para una categoría")
     print("5- Determinar n videos con más views dado un tag")
+def loadVideos():
+    return controller.loadVideos("videos-small.csv")
+def loadCategories():
+    return controller.loadCategories("category-id.csv")
+def buscarTop(pais, categoria, n, categories, videos):
+    return controller.buscarTop(pais, categoria, n,  categories, videos)
+def buscarTrend(pais, categories, videos):
+    return controller.buscarTrend(pais, categories, videos)
+def buscarTrendMenor(categoria, categories, videos):
+    return controller.buscarTrendMenor(categoria, categories, videos)
+def topTags(tag, pais, n, videos):
+    return controller.topTags(tag, pais, n, videos)
+
 
 
 
@@ -49,48 +65,99 @@ catalog = None
 """
 Menu principal
 """
+leido="no"
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        if leido=="no":
+            print("Cargando información de los archivos ....")
+            videos=loadVideos()
+            categories=loadCategories()
+            print("El número de videos cargados es: "+str(lt.size(videos)))
+            print("El primer video cargado tiene la siguiente información:\n"+
+            "Título: "+lt.firstElement(videos)['title']+
+            "\nCanal: "+lt.firstElement(videos)['channel_title']+
+            "\nTrending date: "+lt.firstElement(videos)['trending_date']+
+            "\nPaís: "+lt.firstElement(videos)['country']+
+            "\nViews: "+lt.firstElement(videos)['views']+
+            "\nLikes: "+lt.firstElement(videos)['likes']+
+            "\nDislikes: "+lt.firstElement(videos)['dislikes'])
+            print("Las categorias cargadas son:")
+            for i in range(1, lt.size(categories)+1):
+                print(lt.getElement(categories, i)["id\tname"])
+            leido="si"
+        else:
+            print("Solo se puede cargar la información una vez")
 
     elif int(inputs[0]) == 2:
-        pais=input("Ingresar un país\n")
+        pais=input("Ingresar un país en minúsculas y en inglés\n")
         categoria=input("Ingresar una categoría\n")
-        numeroVideos=input("Ingresar número de videos para buscar el top\n")
-        trending_date="18.13.05"
-        title="Childish Gambino-This is America (Official Video)"
-        channel_title="Childish GambinoVEVO"
-        publish_time="2018-0506T04:00:07.000Z"
-        views="98938809"
-        likes="3037318"
-        dislikes="161813"
-        print("Trending date: "+trending_date+", "+ "Título: "+title+", "+"Título del canal: "+channel_title+", "+"Fecha de publicación: "+publish_time+", "+"Views: "+views+", "+"Likes: "+likes+", "+"Dislikes: "+dislikes)
+        n=input("Ingresar número de videos a listar\n")
+        topVideos=buscarTop(pais, categoria, n, categories, videos)
+        print("Si")
+        print("El top "+str(n)+" de videos de "+pais+" con categoría "+categoria+" es:")
+        for i in range(1, lt.size(topVideos)+1):
+            print(str(i)+". Trending Date: "+lt.getElement(topVideos,i)["trending_date"]+
+            ". Título: "+lt.getElement(topVideos,i)["title"]+
+            ". Canal: "+lt.getElement(topVideos,i)["channel_title"]+
+            ". Fecha de publicación: "+lt.getElement(topVideos,i)["publish_time"]+
+            ". Views: "+lt.getElement(topVideos,i)["views"]+
+            ". Likes: "+lt.getElement(topVideos,i)["likes"]+
+            ". Dislikes: "+lt.getElement(topVideos,i)["dislikes"])
+                
     elif int(inputs[0]) == 3:
-        pais=input("Ingresar un país\n")
-        title="Marvel Studios' Avengers: Infinity War Official Trailer"
-        channel_title="Marvel Entertainment"
-        numeroDias="8"
-        print("Título: "+title+", "+"Título del canal: "+channel_title+", "+"País: "+pais+", "+"Número de días: "+numeroDias)
+        pais=input("Ingresar un país en minúsculas y en inglés\n")
+        trend=buscarTrend(pais, categories, videos)
+        diaPublicacion=int(trend["publish_time"].split("T")[0].split("-")[2])
+        mesPublicacion=int(trend["publish_time"].split("T")[0].split("-")[1])
+        anioPublicacion=int(trend["publish_time"].split("T")[0].split("-")[0])
+        diaTrend=int(trend["trending_date"].split(".")[1])
+        mesTrend=int(trend["trending_date"].split(".")[2])
+        anioTrend="20"+(trend["trending_date"].split(".")[0])
+        anioTrend=int(anioTrend)
+        fechaPublicacion=date(anioPublicacion,mesPublicacion,diaPublicacion)
+        fechaTrend=date(anioTrend,mesTrend,diaTrend)
+        diasTrend=abs(fechaPublicacion-fechaTrend).days
+        print("El video con más días de tendencia en "+pais+" es:\n"+
+        "Título: "+trend["title"]+
+        "\nCanal: "+trend["channel_title"]+
+        "\nPaís: "+trend["country"]+
+        "\nDías de tendencia: "+str(diasTrend))
     elif int(inputs[0]) == 4:
         categoria=input("Ingresar una categoria\n")
-        title="Childish Gambino-This is America (Official Video)"
-        channel_title="Childish GambinoVEVO"
-        category_id="10"
-        numeroDias="92"
-        print("Título: "+title+", "+"Título del canal: "+channel_title+", "+"ID de categoría: "+category_id+", "+"Número de días: "+numeroDias)
+        trend=buscarTrendMenor(categoria, categories, videos)
+        diaPublicacion=int(trend["publish_time"].split("T")[0].split("-")[2])
+        mesPublicacion=int(trend["publish_time"].split("T")[0].split("-")[1])
+        anioPublicacion=int(trend["publish_time"].split("T")[0].split("-")[0])
+        diaTrend=int(trend["trending_date"].split(".")[1])
+        mesTrend=int(trend["trending_date"].split(".")[2])
+        anioTrend="20"+(trend["trending_date"].split(".")[0])
+        anioTrend=int(anioTrend)
+        fechaPublicacion=date(anioPublicacion,mesPublicacion,diaPublicacion)
+        fechaTrend=date(anioTrend,mesTrend,diaTrend)
+        diasTrend=abs(fechaPublicacion-fechaTrend).days
+        
+        print("El video con más días de tendencia con categría "+categoria+" es:\n"+
+        "Título: "+trend["title"]+
+        "\nCanal: "+trend["channel_title"]+
+        "\nID de categoría: "+trend["category_id"]
+        +"\nDías de tendencia: "+str(diasTrend))
     elif int(inputs[0]) == 5:
         tag=input("Ingresar un tag\n")
-        numeroVideos=input("Ingresar número de videos para buscar el top\n")
-        title="Childish Gambino-This is America (Official Video)"
-        channel_title="Childish GambinoVEVO"
-        publish_time="2018-0506T04:00:07.000Z"
-        views="98938809"
-        likes="3037318"
-        dislikes="161813"
-        tags="Childish"+" | "+tag
-        print("Título: "+title+", "+"Título del canal: "+channel_title+", "+"Fecha de publicación: "+publish_time+", "+"Views: "+views+", "+"Likes: "+likes+", "+"Dislikes: "+dislikes+"Tags: "+tags)
+        pais=input("Ingresar un país en minúsculas y en inglés\n")
+        n=input("Ingresar número de videos para buscar el top\n")
+        topVideos=topTags(tag, pais, n, videos)
+        print("Los videos  con más likes en "+pais+" con el tag "+tag+" son:")
+        for i in range(1, lt.size(topVideos)+1):
+            print(str(i)+". Título: "+lt.getElement(topVideos,i)["title"]+
+            ". Canal: "+lt.getElement(topVideos,i)["channel_title"]+
+            ". Fecha de publicación: "+lt.getElement(topVideos,i)["publish_time"]+
+            ". Fecha de publicación: "+lt.getElement(topVideos,i)["publish_time"]+
+            ". Views: "+lt.getElement(topVideos,i)["views"]+
+            ". Likes: "+lt.getElement(topVideos,i)["likes"]+
+            ". Dislikes: "+lt.getElement(topVideos,i)["dislikes"]+
+            ". tags: "+lt.getElement(topVideos,i)["tags"])
     else:
         sys.exit(0)
 sys.exit(0)
